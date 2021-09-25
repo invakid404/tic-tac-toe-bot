@@ -1,3 +1,3 @@
-export const isValidSnowflake = (value: bigint): boolean => {
-  return value !== BigInt(0);
+export const isValidSnowflake = (value: bigint | undefined): boolean => {
+  return value != null && value !== BigInt(0);
 };

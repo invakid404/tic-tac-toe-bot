@@ -5,6 +5,7 @@ import {
   chunkArray,
   decodeString,
   encodeToString,
+  isValidSnowflake,
   noop,
 } from "./utils/index.ts";
 import { BOARD_SIZE } from "./const.ts";
@@ -32,7 +33,7 @@ if (commands.size !== 1) {
 }
 
 const getMention = (userId: bigint | undefined): string => {
-  if (!userId || userId === BigInt(0)) {
+  if (!isValidSnowflake(userId)) {
     return "Bot";
   }
 
