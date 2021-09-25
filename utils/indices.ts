@@ -1,6 +1,3 @@
-export const iota = (length: number, initial = 0) =>
-  Array.from({ length }, (_, idx) => idx + initial);
-
 export const index1D = (idxA: number, idxB: number, size: number): number =>
   idxA * size + idxB;
 

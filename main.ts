@@ -1,9 +1,13 @@
-import * as deploy from "https://code.harmony.rocks/v2.2.0/deploy.ts";
-import { TicTacToe, CellState } from "./game.ts";
-import { encode, decode } from "https://deno.land/std@0.106.0/encoding/hex.ts";
-import { index1D } from "./utils.ts";
-
-const BOARD_SIZE = 3;
+import { deploy } from "./deps.ts";
+import { TicTacToe, Player, Status } from "./game.ts";
+import {
+  index1D,
+  chunkArray,
+  decodeString,
+  encodeToString,
+  noop,
+} from "./utils/index.ts";
+import { BOARD_SIZE } from "./const.ts";
 
 deploy.init({
   env: true,
@@ -27,29 +31,8 @@ if (commands.size !== 1) {
   ]);
 }
 
-const noop = {
-  type: deploy.InteractionResponseType.DEFERRED_MESSAGE_UPDATE,
-};
-
-const decoder = new TextDecoder();
-const encoder = new TextEncoder();
-
-function decodeString(hex: string) {
-  return decode(encoder.encode(hex));
-}
-
-function encodeToString(data: Uint8Array) {
-  return decoder.decode(encode(data));
-}
-
-function* chunkArray<T>(array: T[], size: number) {
-  for (let i = 0; i < array.length; i += size) {
-    yield array.slice(i, i + size);
-  }
-}
-
-const getMention = (userId: bigint): string => {
-  if (userId === BigInt(0)) {
+const getMention = (userId: bigint | undefined): string => {
+  if (!userId || userId === BigInt(0)) {
     return "Bot";
   }
 
@@ -59,10 +42,10 @@ const getMention = (userId: bigint): string => {
 const getMessageContent = (game: TicTacToe): string => {
   const turn = game.turn;
 
-  const hasEnded = game.hasEnded;
-  const hasPlayer = turn !== CellState.Empty;
+  const hasEnded = game.status === Status.Ended;
+  const hasPlayer = turn !== Player.None;
 
-  const userId = turn === CellState.X ? game.playerX : game.playerY;
+  const userId = game.toPlay;
   const mention = getMention(userId);
 
   if (!hasEnded) {
@@ -83,23 +66,23 @@ const buttonStyles = [
 ];
 
 const gameToMessage = (game: TicTacToe): deploy.InteractionMessageOptions => {
-  const gameData = game.data.slice(0, game.getSize());
+  const gameData = game.raw;
 
   return {
     content: getMessageContent(game),
-    components: Array.from(chunkArray([...game.board], BOARD_SIZE)).map(
+    components: Array.from(chunkArray([...game.state.board], BOARD_SIZE)).map(
       (row, rowIdx): deploy.MessageComponentData => ({
         type: deploy.MessageComponentType.ActionRow,
         components: row.map((cell, cellIdx) => {
           const idx = index1D(rowIdx, cellIdx, BOARD_SIZE);
-          const isOccupied = cell !== CellState.Empty;
+          const isOccupied = cell !== Player.None;
 
           return {
             type: deploy.MessageComponentType.Button,
             style: buttonStyles[cell],
-            label: isOccupied ? CellState[cell] : "\u200b",
-            customID: encodeToString(new Uint8Array([...gameData, idx])),
-            disabled: !!game.hasEnded,
+            label: isOccupied ? Player[cell] : "\u200b",
+            customID: encodeToString(new Uint8Array([idx, ...gameData])),
+            disabled: game.status === Status.Ended,
           };
         }),
       })
@@ -118,10 +101,9 @@ deploy.handle("play", (interaction) => {
     });
   }
 
-  const game = new TicTacToe(BOARD_SIZE, interaction.user.id, opponent?.id);
-  const message = gameToMessage(game);
+  const game = TicTacToe.newGame(interaction.user.id, opponent?.id);
 
-  interaction.reply(message);
+  interaction.reply(gameToMessage(game));
 });
 
 deploy.client.on("interaction", (interaction) => {
@@ -134,13 +116,14 @@ deploy.client.on("interaction", (interaction) => {
 
   const currUser = interaction.user.id;
 
-  const game = new TicTacToe(decodeString(interaction.data.custom_id));
+  const [cellIdx, ...gameState] = decodeString(interaction.data.custom_id);
+
+  const game = TicTacToe.parseGame(new Uint8Array(gameState));
 
   const turn = game.turn;
-  const userToPlay = turn === CellState.X ? game.playerX : game.playerY;
-  const cellIdx = game.data.at(-1)!;
+  const userToPlay = game.toPlay;
 
-  if (!turn || currUser !== userToPlay.toString()) {
+  if (!turn || currUser !== userToPlay?.toString()) {
     return interaction.respond(noop);
   }
 
