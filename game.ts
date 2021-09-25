@@ -33,8 +33,8 @@ export class TicTacToe {
     return new TicTacToe(game);
   }
 
-  static parseGame(raw: Uint8Array) {
-    const game = new TicTacToeState([...raw]);
+  static parseGame(raw: number[]) {
+    const game = new TicTacToeState(raw);
 
     return new TicTacToe(game);
   }

@@ -119,12 +119,10 @@ deploy.client.on("interaction", (interaction) => {
 
   const [cellIdx, ...gameState] = decodeString(interaction.data.custom_id);
 
-  const game = TicTacToe.parseGame(new Uint8Array(gameState));
+  const game = TicTacToe.parseGame(gameState);
 
-  const turn = game.turn;
   const userToPlay = game.toPlay;
-
-  if (!turn || currUser !== userToPlay?.toString()) {
+  if (currUser !== userToPlay?.toString()) {
     return interaction.respond(noop);
   }
 
