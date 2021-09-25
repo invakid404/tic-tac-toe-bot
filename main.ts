@@ -67,7 +67,7 @@ const buttonStyles = [
 ];
 
 const gameToMessage = (game: TicTacToe): deploy.InteractionMessageOptions => {
-  const gameData = game.raw;
+  const gameData = [...game.raw!.values()];
 
   return {
     content: getMessageContent(game),
