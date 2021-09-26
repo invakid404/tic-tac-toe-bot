@@ -13,4 +13,4 @@ Then, get the deno.dev link for the project, and set it as the "Interactions End
 ## TODO
 
 - [x] Implement basic game
-- [ ] Implement proper bot opponent
+- [x] Implement proper bot opponent
