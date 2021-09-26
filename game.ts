@@ -1,6 +1,7 @@
 import { index1D, index2D, iota, isValidSnowflake } from "./utils/index.ts";
 import { BOARD_SIZE } from "./const.ts";
 import { struct } from "./deps.ts";
+import { Bot } from "./bot.ts";
 
 export enum Status {
   Playing,
@@ -73,13 +74,10 @@ export class TicTacToe {
       return;
     }
 
-    while (true) {
-      const idx = Math.floor(Math.random() * BOARD_SIZE ** 2);
+    const botPlayer = new Bot();
+    const botMove = botPlayer.getBestMove(this);
 
-      if (this.playTurn(idx)) {
-        break;
-      }
-    }
+    this.playTurn(botMove);
   }
 
   private checkOutcome(cellIdx: number): GameOutcome {
@@ -158,5 +156,13 @@ export class TicTacToe {
 
   get status(): Status {
     return this.state.status;
+  }
+
+  get board(): Uint8Array {
+    return this.state.board;
+  }
+
+  set board(value: Uint8Array) {
+    this.state.board = value;
   }
 }
