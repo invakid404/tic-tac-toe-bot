@@ -155,12 +155,20 @@ export class TicTacToe {
     }
   }
 
+  set turn(value: Player) {
+    this.state.turn = value;
+  }
+
   get turn(): Player {
     return this.state.turn;
   }
 
   get status(): Status {
     return this.state.status;
+  }
+
+  set status(value: Status) {
+    this.state.status = value;
   }
 
   get board(): Uint8Array {

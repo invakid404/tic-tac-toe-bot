@@ -34,10 +34,15 @@ export class Bot {
 
     const best = availableCells.reduce(
       (best, idx) => {
-        const clone = TicTacToe.parseGame([...game.raw!.values()]);
-        clone.playTurn(idx);
+        const turn = game.turn;
+        const status = game.status;
+        game.playTurn(idx);
 
-        const nodeValue = this.getBestMove(clone, !maximizing, depth + 1);
+        const nodeValue = this.getBestMove(game, !maximizing, depth + 1);
+
+        game.board[idx] = Player.None;
+        game.turn = turn;
+        game.status = status;
 
         best = optimizingFn(best, nodeValue);
 
