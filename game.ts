@@ -13,6 +13,12 @@ export enum Player {
   O,
 }
 
+enum GameOutcome {
+  None,
+  Victory,
+  Draw,
+}
+
 export const TicTacToeState = new struct.default("TicTacToeState")
   .BigUInt64LE("playerX")
   .BigUInt64LE("playerO")
@@ -48,9 +54,11 @@ export class TicTacToe {
 
     this.state.board[cellIdx] = this.turn;
 
-    const hasEnded = this.checkEnded(cellIdx);
-    if (hasEnded) {
+    const outcome = this.checkOutcome(cellIdx);
+    if (outcome !== GameOutcome.None) {
       this.state.status = Status.Ended;
+
+      outcome === GameOutcome.Draw && (this.state.turn = Player.None);
 
       return true;
     }
@@ -74,13 +82,10 @@ export class TicTacToe {
     }
   }
 
-  private checkEnded(cellIdx: number) {
+  private checkOutcome(cellIdx: number): GameOutcome {
     const hasEmptyCells = this.state.board.some(
       (cell: Player) => cell === Player.None
     );
-    if (!hasEmptyCells) {
-      return true;
-    }
 
     const cellValue = this.state.board[cellIdx];
     const [cellX, cellY] = index2D(cellIdx, BOARD_SIZE);
@@ -103,12 +108,17 @@ export class TicTacToe {
       cellX + cellY === BOARD_SIZE - 1 &&
       checkVictory((idx) => [idx, BOARD_SIZE - idx - 1]);
 
-    return (
+    const hasWon =
       checkRowVictory() ||
       checkColVictory() ||
       checkDiagAVictory() ||
-      checkDiagBVictory()
-    );
+      checkDiagBVictory();
+
+    if (!hasWon) {
+      return hasEmptyCells ? GameOutcome.None : GameOutcome.Draw;
+    }
+
+    return GameOutcome.Victory;
   }
 
   private toggleTurn() {
