@@ -79,7 +79,7 @@ export class TicTacToe {
       return;
     }
 
-    const botMove = getBestMove(this, this.state.depth);
+    const botMove = getBestMove(this, this.state.depth || -1);
 
     this.playTurn(botMove);
   }

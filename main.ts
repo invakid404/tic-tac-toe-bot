@@ -108,7 +108,7 @@ deploy.handle("play", (interaction) => {
     });
   }
 
-  const depth = interaction.option<number | undefined>("depth") ?? -1;
+  const depth = interaction.option<number | undefined>("depth") ?? 0;
 
   const game = TicTacToe.newGame(interaction.user.id, opponent?.id, depth);
 
