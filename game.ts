@@ -100,7 +100,7 @@ export class TicTacToe {
       cellX === cellY && checkVictory((idx) => [idx, idx]);
 
     const checkDiagBVictory = () =>
-      cellX + cellY === BOARD_SIZE + 1 &&
+      cellX + cellY === BOARD_SIZE - 1 &&
       checkVictory((idx) => [idx, BOARD_SIZE - idx - 1]);
 
     return (
