@@ -4,66 +4,68 @@ const WIN_SCORE = 100;
 const LOSE_SCORE = -100;
 const DRAW_SCORE = 0;
 
-export class Bot {
-  private nodesMap = new Map<number, number[]>();
-
-  constructor(private readonly maxDepth = -1) {}
-
-  getBestMove(game: TicTacToe, maximizing = true, depth = 0) {
-    if (depth === 0) {
-      this.nodesMap.clear();
+export const getBestMove = (
+  game: TicTacToe,
+  maxDepth: number,
+  depth = 0,
+  alpha = -Infinity,
+  beta = +Infinity
+) => {
+  if (game.status === Status.Ended || depth === maxDepth) {
+    const winner = game.turn;
+    switch (winner) {
+      case Player.X:
+        return LOSE_SCORE + depth;
+      case Player.O:
+        return WIN_SCORE - depth;
+      default:
+        return DRAW_SCORE;
     }
-    if (game.status === Status.Ended || depth === this.maxDepth) {
-      const winner = game.turn;
-      switch (winner) {
-        case Player.X:
-          return LOSE_SCORE + depth;
-        case Player.O:
-          return WIN_SCORE - depth;
-        default:
-          return DRAW_SCORE;
+  }
+
+  const maximizing = game.turn === Player.O;
+
+  let bestMove = -1;
+  let bestScore = maximizing ? LOSE_SCORE : WIN_SCORE;
+
+  const availableCells = [...game.board]
+    .map((cell, idx) => [cell, idx])
+    .filter(([cell]) => cell === Player.None)
+    .map(([_, idx]) => idx);
+
+  for (const idx of availableCells) {
+    const oldTurn: Player = game.turn;
+    const oldStatus: Status = game.status;
+
+    game.playTurn(idx);
+
+    const score = getBestMove(game, maxDepth, depth + 1, alpha, beta);
+
+    game.board[idx] = Player.None;
+    game.status = oldStatus;
+    game.turn = oldTurn;
+
+    const hasImprovedScore = bestScore < score;
+
+    if (hasImprovedScore === maximizing) {
+      bestScore = score;
+      bestMove = idx;
+
+      if (maximizing) {
+        alpha = Math.max(alpha, bestScore);
+      } else {
+        beta = Math.min(beta, bestScore);
       }
     }
 
-    const optimizingFn = maximizing ? Math.max : Math.min;
-
-    const availableCells = [...game.board]
-      .map((cell, idx) => [cell, idx])
-      .filter(([cell]) => cell === Player.None)
-      .map(([_, idx]) => idx);
-
-    const best = availableCells.reduce(
-      (best, idx) => {
-        const turn = game.turn;
-        const status = game.status;
-        game.playTurn(idx);
-
-        const nodeValue = this.getBestMove(game, !maximizing, depth + 1);
-
-        game.board[idx] = Player.None;
-        game.turn = turn;
-        game.status = status;
-
-        best = optimizingFn(best, nodeValue);
-
-        if (depth === 0) {
-          const oldMoves = this.nodesMap.get(nodeValue) ?? [];
-
-          this.nodesMap.set(nodeValue, [...oldMoves, idx]);
-        }
-
-        return best;
-      },
-      maximizing ? LOSE_SCORE : WIN_SCORE
-    );
-
-    if (depth === 0) {
-      const bestMoves = this.nodesMap.get(best)!;
-      const randIdx = Math.floor(Math.random() * bestMoves.length);
-
-      return bestMoves[randIdx];
+    if (beta <= alpha) {
+      break;
     }
-
-    return best;
   }
-}
+
+  if (depth === 0) {
+    return bestMove;
+  }
+
+  return bestScore;
+};

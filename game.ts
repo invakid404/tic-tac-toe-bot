@@ -1,7 +1,7 @@
 import { index1D, index2D, iota, isValidSnowflake } from "./utils/index.ts";
 import { BOARD_SIZE } from "./const.ts";
 import { struct } from "./deps.ts";
-import { Bot } from "./bot.ts";
+import { getBestMove } from "./bot.ts";
 
 export enum Status {
   Playing,
@@ -79,8 +79,7 @@ export class TicTacToe {
       return;
     }
 
-    const botPlayer = new Bot(this.state.depth);
-    const botMove = botPlayer.getBestMove(this);
+    const botMove = getBestMove(this, this.state.depth);
 
     this.playTurn(botMove);
   }
