@@ -27,6 +27,12 @@ if (commands.size !== 1) {
           type: deploy.SlashCommandOptionType.USER,
           required: false,
         },
+        {
+          name: "depth",
+          description: "The number of turns the bot calculates.",
+          type: deploy.SlashCommandOptionType.NUMBER,
+          required: false,
+        },
       ],
     },
   ]);
@@ -102,7 +108,9 @@ deploy.handle("play", (interaction) => {
     });
   }
 
-  const game = TicTacToe.newGame(interaction.user.id, opponent?.id);
+  const depth = interaction.option<number | undefined>("depth") ?? -1;
+
+  const game = TicTacToe.newGame(interaction.user.id, opponent?.id, depth);
 
   interaction.reply(gameToMessage(game));
 });

@@ -23,19 +23,24 @@ enum GameOutcome {
 export const TicTacToeState = new struct.default("TicTacToeState")
   .BigUInt64LE("playerX")
   .BigUInt64LE("playerO")
-  .Bits8({ turn: [0, 2], status: [2, 1] })
+  .Bits8({ turn: [0, 2], status: [2, 1], depth: [3, 5] })
   .UInt8Array("board", BOARD_SIZE ** 2)
   .compile();
 
 export type TicTacToeState = struct.ExtractType<typeof TicTacToeState>;
 
 export class TicTacToe {
-  static newGame(userId: string, opponentId?: string) {
+  static newGame(
+    userId: string,
+    opponentId: string | undefined,
+    depth: number
+  ) {
     const game = new TicTacToeState();
 
     game.playerX = BigInt(userId);
     opponentId && (game.playerO = BigInt(opponentId));
     game.turn = Player.X;
+    game.depth = depth;
 
     return new TicTacToe(game);
   }
@@ -74,7 +79,7 @@ export class TicTacToe {
       return;
     }
 
-    const botPlayer = new Bot();
+    const botPlayer = new Bot(this.state.depth);
     const botMove = botPlayer.getBestMove(this);
 
     this.playTurn(botMove);

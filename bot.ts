@@ -13,11 +13,8 @@ export class Bot {
     if (depth === 0) {
       this.nodesMap.clear();
     }
-
     if (game.status === Status.Ended || depth === this.maxDepth) {
       const winner = game.turn;
-      console.log("game ended with winner", winner);
-
       switch (winner) {
         case Player.X:
           return LOSE_SCORE + depth;
@@ -56,8 +53,6 @@ export class Bot {
     );
 
     if (depth === 0) {
-      console.log(this.nodesMap);
-
       const bestMoves = this.nodesMap.get(best)!;
       const randIdx = Math.floor(Math.random() * bestMoves.length);
 
