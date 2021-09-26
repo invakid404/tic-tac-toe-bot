@@ -46,16 +46,17 @@ export const getBestMove = (
     game.turn = oldTurn;
 
     const hasImprovedScore = bestScore < score;
+    if (hasImprovedScore !== maximizing) {
+      continue;
+    }
 
-    if (hasImprovedScore === maximizing) {
-      bestScore = score;
-      bestMove = idx;
+    bestScore = score;
+    bestMove = idx;
 
-      if (maximizing) {
-        alpha = Math.max(alpha, bestScore);
-      } else {
-        beta = Math.min(beta, bestScore);
-      }
+    if (maximizing) {
+      alpha = Math.max(alpha, bestScore);
+    } else {
+      beta = Math.min(beta, bestScore);
     }
 
     if (beta <= alpha) {
